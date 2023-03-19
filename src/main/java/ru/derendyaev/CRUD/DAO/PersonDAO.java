@@ -3,6 +3,7 @@ package ru.derendyaev.CRUD.DAO;
 import org.springframework.stereotype.Component;
 import ru.derendyaev.CRUD.models.Person;
 
+import javax.imageio.plugins.jpeg.JPEGImageReadParam;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,5 +38,9 @@ public class PersonDAO {
         Person personToBeUpdated = show(id);
 
         personToBeUpdated.setName(updatedPerson.getName());
+    }
+
+    public void delete(int id) {
+        people.removeIf(person -> person.getId() == id);
     }
 }

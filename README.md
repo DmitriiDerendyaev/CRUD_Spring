@@ -150,3 +150,4 @@ public void save(Person person) {
 
 Стоит отметить, что для подстановки в адресную строку `{id}` необходимо использовать action `th:action="@{/people/{id}(id=${person.getId()})}`
 
+Аналогично для удаления(ОДНАКО DELETE сработал корректно)
