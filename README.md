@@ -1,6 +1,9 @@
 # CRUD Application
 ## lesson 21 - CRUD, REST, Паттерн DAO (Data Access Object)
 
+### План работы:
+![img.png](mdResouces/CRUD_GET.png)
+
 - Разработана иерархия каталогов, объединяющих отдельные модули:
   - config - конфигурация Spring Application
   - controllers - расположение контроллеров, принимающих запросы
@@ -56,4 +59,51 @@ public class PersonDAO {
 <div th:each="person: ${people}">
   <a th:href="@{/people/{id}(id=${person.getId()})}"  th:text="${person.getName()}"> User</a>
 </div>
+```
+
+## lesson 22 - @ModelAttribute, POST
+### Реализация POST
+![img.png](mdResouces/POST_form.png)
+- Создание обработчиков в контроллере `PeopleController`
+```java
+@GetMapping("/new")
+public String newPerson(Model model){
+        model.addAttribute("person", new Person());
+        return "people/new";
+        }
+
+@PostMapping
+public String create(@ModelAttribute("person") Person person){
+        personDAO.save(person);
+
+        return "redirect:/people";
+        }
+```
+- Аннотация `@ModelAttribute("person") Person person` способна сама выбрать из запроса необходимые поля и по ключам создать объект класса
+
+
+- В DAO реализован метод `save()`, который принимает объект Person и добавляет в список
+```java
+public void save(Person person) {
+        person.setId(++PEOPLE_COUNT);
+        people.add(person);
+    }
+```
+
+- Создание HTML документа с формой для последующей передачи данных в POST запрос
+- Указать подключение Thymeleaf:
+```html
+<html lang="en" xmlns:th="http://thymeleaf.org">
+```
+- Создание формы:
+```html
+<form th:method="POST" th:action="@{/people}" th:object="${person}"> <!--// $ для обращения к адресам и переадресации-->
+  <label for="name">Name: </label>
+ <input type="text" th:field="*{name}" id="name"> <!-- // * для обращения к полю приходящего объекта-->
+
+  <br>
+
+  <input type="submit" value="Create!"/>
+
+</form>
 ```
