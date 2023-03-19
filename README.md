@@ -8,7 +8,7 @@
   - config - конфигурация Spring Application
   - controllers - расположение контроллеров, принимающих запросы
   - DAO(Data Access Object) - классы, определяющие доступ к данным, использующие модели `models` из соответствующего каталога
-  - models - классы, определяющеие то, как выглядят объекты данных, в дальнейшем сущностей БД
+  - models - классы, определяющее то, как выглядят объекты данных, в дальнейшем сущностей БД
 
 - Через конструктор внедрена зависимость `PersonDAO`:
 ```java
@@ -19,7 +19,7 @@
         this.personDAO = personDAO;
     }
 ```
-- Которая в свою очередь является сущностью класса PersonDAO и обладает методами, при вызове которого происхдит возврат данных для загрузки в `Model` для передачи во `View`
+- Которая в свою очередь является сущностью класса PersonDAO и обладает методами, при вызове которого происходит возврат данных для загрузки в `Model` для передачи во `View`
 ```java
     @GetMapping()
     public String index(Model model){
@@ -107,3 +107,46 @@ public void save(Person person) {
 
 </form>
 ```
+
+## lesson 23 - UPDATE, DELETE
+- В классе контроллера добавляем функции на управление и исполнение редактирования данных
+```java
+    @GetMapping("/{id}/edit")
+    public String edit(Model model, @PathVariable("id") int id) {
+        model.addAttribute("person", personDAO.show(id));
+        return "people/edit";
+    }
+
+
+//    @PatchMapping("/{id}")
+    @PostMapping ("/{id}")
+    public String update(@ModelAttribute("person") Person person,
+                         @PathVariable("id") int id){
+        personDAO.update(id, person);
+        return "redirect:/people";
+    }
+```
+(Возникают проблемы с PATCH запросами, т.к. HTML 5 поддерживает только GET и POST запросы)
+
+- В DataAccessObject добавляем функцию на обновление данных в списке
+```java
+    public void update(int id, Person updatedPerson) {
+        Person personToBeUpdated = show(id);
+
+        personToBeUpdated.setName(updatedPerson.getName());
+    }
+```
+
+- В свою очередь HTML файл выглядит следующим образом:
+```html
+<H1>To change information</H1>
+<form th:method="POST" th:action="@{/people/{id}(id=${person.getId()})}" th:object="${person}">
+    <label for="name">Enter name: </label>
+    <input type="text" th:field="*{name}" id="name"/>
+    <br/>
+    <input type="submit" value="Update!"/>
+</form>
+```
+
+Стоит отметить, что для подстановки в адресную строку `{id}` необходимо использовать action `th:action="@{/people/{id}(id=${person.getId()})}`
+
