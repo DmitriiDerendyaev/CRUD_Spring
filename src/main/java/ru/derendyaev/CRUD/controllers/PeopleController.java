@@ -1,7 +1,6 @@
 package ru.derendyaev.CRUD.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.lang.UsesJava8;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -75,9 +74,9 @@ public class PeopleController {
         return "redirect:/people";
     }
 
-//    @PostMapping()
-    @DeleteMapping()
-    public String delete(@PathVariable("id") int id){
+    @PostMapping("/delete/{id}")
+//    @DeleteMapping("/{id}")
+    public String delete(@PathVariable("id") int id) {
         personDAO.delete(id);
         return "redirect:/people";
     }
