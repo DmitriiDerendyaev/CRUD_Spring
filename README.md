@@ -153,3 +153,54 @@ public void save(Person person) {
 Аналогично для удаления(ОДНАКО DELETE сработал корректно)
 
 ## lesson 24 - Валидация форм с помощью Hibernate validator
+
+## lesson 25 - PreparedStatement
+- Создание запросов с помощью 
+```java
+PreparedStatement preparedStatement =
+                    connection.prepareStatement("INSERT INTO Person VALUES(1, ?, ?, ?)");
+```
+- Тогда метод Save выглядит так:
+```java
+public void save(Person person) {
+        try {
+            PreparedStatement preparedStatement =
+                    connection.prepareStatement("INSERT INTO Person VALUES(1, ?, ?, ?)");
+
+            preparedStatement.setString(1, person.getName()); // наполнение preparedStatement данными из пришедшего Person
+            preparedStatement.setInt(2, person.getAge());
+            preparedStatement.setString(3, person.getEmail());
+
+            preparedStatement.executeUpdate(); // выполнение запроса
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+```
+- В методе Show мы формируем Person для передачи модели пользователя на View
+```java
+public Person show(int id){
+        Person person = null;
+
+        try {
+            PreparedStatement preparedStatement =
+                    connection.prepareStatement("SELECT * FROM Person WHERE id=?");
+
+            preparedStatement.setInt(1, id);
+
+            ResultSet resultSet = preparedStatement.executeQuery(); // в resultSet помещаем выгрузку из БД и парсим на элементы Person
+
+            resultSet.next();
+
+            person = new Person();
+
+            person.setId(resultSet.getInt("id"));
+            person.setName(resultSet.getString("name"));
+            person.setAge(resultSet.getInt("age"));
+            person.setEmail(resultSet.getString("email"));
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return person;
+    }
+```
