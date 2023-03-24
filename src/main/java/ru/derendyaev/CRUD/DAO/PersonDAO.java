@@ -1,6 +1,8 @@
 package ru.derendyaev.CRUD.DAO;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.StaticMessageSource;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import ru.derendyaev.CRUD.models.Person;
 
@@ -12,74 +14,23 @@ import java.util.List;
 
 @Component
 public class PersonDAO {
-    private static int PEOPLE_COUNT;
 
-    private static final String URL = "jdbc:postgresql://localhost:5432/first_db";
-    private static final String USERNAME= "postgres";
-    private static final String PASSWORD = "1234";
+    private final JdbcTemplate jdbcTemplate;
 
-    private static Connection connection;
-
-    static {
-        try{
-            Class.forName("org.postgresql.Driver");
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        try {
-            connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+    @Autowired
+    public PersonDAO(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     public List<Person> index() {
-        List<Person> people = new ArrayList<>();
-
-        try {
-            Statement statement = connection.createStatement();
-            String SQL = "SELECT * FROM Person";
-            ResultSet resultSet = statement.executeQuery(SQL);
-
-            while(resultSet.next()){
-                Person person = new Person();
-
-                person.setId(resultSet.getInt("id"));
-                person.setName(resultSet.getString("name"));
-                person.setAge(resultSet.getInt("age"));
-                person.setEmail(resultSet.getString("email"));
-
-                people.add(person);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return people;
+        return jdbcTemplate.query("SELECT * FROM Person", new PersonMapper());
     }
 
     public Person show(int id){
-        Person person = null;
-
-        try {
-            PreparedStatement preparedStatement =
-                    connection.prepareStatement("SELECT * FROM Person WHERE id=?");
-
-            preparedStatement.setInt(1, id);
-
-            ResultSet resultSet = preparedStatement.executeQuery();
-
-            resultSet.next();
-
-            person = new Person();
-
-            person.setId(resultSet.getInt("id"));
-            person.setName(resultSet.getString("name"));
-            person.setAge(resultSet.getInt("age"));
-            person.setEmail(resultSet.getString("email"));
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return person;
+        return jdbcTemplate.query("SELECT * FROM Person WHERE id=?",
+                new Object[]{id},
+                new PersonMapper())
+                .stream().findAny().orElse(null); // всегда PreparedStatement
     }
 
     public void save(Person person) {
