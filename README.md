@@ -204,3 +204,59 @@ public Person show(int id){
         return person;
     }
 ```
+
+## lesson 27 - JDBC Template
+- Подключение к БД уходит в файл конфигурации `SpringConfig.java`
+```java
+@Bean
+    public DataSource dataSource(){
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+
+        dataSource.setDriverClassName("org.postgresql.Driver");
+        dataSource.setUrl("jdbc:postgresql://localhost:5432/first_db");
+        dataSource.setUsername("postgres");
+        dataSource.setPassword("1234");
+        
+        return dataSource;
+    }
+
+    @Bean
+    public JdbcTemplate jdbcTemplate(){
+        return new JdbcTemplate(dataSource());
+    }
+```
+
+- Теперь необходимо лишь внедрить зависимость в `PersonDAO`
+```java
+    private final JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    public PersonDAO(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+```
+
+- В свою очередь для парсинга модели из БД в объект Person необходимо создать PersonMapper:
+```java
+public class PersonMapper implements RowMapper<Person> {
+    @Override
+    public Person mapRow(ResultSet resultSet, int i) throws SQLException {
+
+        Person person = new Person();
+
+        person.setId(resultSet.getInt("id"));
+        person.setName(resultSet.getString("name"));
+        person.setAge(resultSet.getInt("age"));
+        person.setEmail(resultSet.getString("email"));
+
+        return person;
+    }
+}
+```
+
+- И использовать его в Person DAO
+```java
+public List<Person> index() {
+        return jdbcTemplate.query("SELECT * FROM Person", new PersonMapper());
+    }
+```
